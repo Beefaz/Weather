@@ -1,0 +1,11 @@
+header{
+    position:relative;
+    width:100%;
+}
+input{
+    width: 90%;
+    padding: 1em;
+}
+header > p{
+    background-color:lightblue;
+}

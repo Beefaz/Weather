@@ -1,35 +1,65 @@
 (function(){
     const body = document.querySelector('body');
     const header = document.createElement('header');
-    const paieskosEilute = document.createElement('input');
-    let vietovesUzklausa = new XMLHttpRequest();   //sukuriamas naujas objektas
+    const paieskosZodis = document.createElement('input');
+    let vietovesUzklausa = new XMLHttpRequest();   //sukuriamas naujas uzklausos objektas
     vietovesUzklausa.onreadystatechange = function () { //callback
         if (vietovesUzklausa.readyState === 4) {   // 4 ir 200 - html status (kaip errorai, F12 - network (isplesti, matomi elementai)
             if (vietovesUzklausa.status === 200) {
                 let vietoviuSarasas = JSON.parse(vietovesUzklausa.responseText);  // kintamasis = duomenys is failo/webo
+                let div = document.createElement('div');
+                header.appendChild(paieskosZodis);
                 body.appendChild(header);
-                paieskosEilute.placeholder ='Įveskite miesto pavadinimą';
-                paieskosEilute.oninput = addEventListener("input", paieskosMenu);
-                header.appendChild(paieskosEilute);
-                function paieskosMenu() {
-                    let neDaugiau10PaieskosRezultatu = 0;
-                    let p;
-                        for(let i = 0 ; vietoviuSarasas.length-1>0; i++){
-                            let laikinasKintamasis = vietoviuSarasas[i].code;
-                            if (laikinasKintamasis.startsWith(paieskosEilute.value.toLowerCase())&&neDaugiau10PaieskosRezultatu<10){
-                                p = document.createElement('p');
-                                header.appendChild(p);
-                                p.innerHTML = vietoviuSarasas[i].code.charAt(0).toUpperCase()+vietoviuSarasas[i].code.slice(1);
-                                neDaugiau10PaieskosRezultatu++;
-                                p.className = 'trinami';
+                header.style.background = 'lightblue';
+                header.appendChild(div).id = 'paieskosSarasas';
+                header.style.padding = '1%';
+                div.style.position = 'absolute';
+                div.style.background = 'lightblue';
+                div.style.zIndex= '+1';
+
+                for (let i = 0; 10 > i; i++) {
+                    let p = document.createElement('p');
+                    document.getElementById('paieskosSarasas').appendChild(p);
+                    p.id = 'paieskosRezultatas' + i;
+                    p.style.padding = '1%';
+                    p.style.width = 'fit-content';
+                }
+
+                paieskosZodis.placeholder ='Įveskite vietovės pavadinimą';
+                paieskosZodis.onkeyup = addEventListener("keyup", formuotiStulpelius);
+                paieskosZodis.oninput = addEventListener("input", lauktiTinkamosVietoves);
+                paieskosZodis.onkeydown = addEventListener("keydown", salintiStulpelius);
+
+                function formuotiStulpelius() {
+                    let iki10 = 0;
+                    for (let i = 0; i<vietoviuSarasas.length; i++) {
+                        if (iki10 < 10) {
+                            if (vietoviuSarasas[i].code.startsWith(paieskosZodis.value.toLowerCase())) {
+                                let paieskosRezultatas = document.getElementById('paieskosRezultatas' + iki10);
+                                paieskosRezultatas.innerHTML = vietoviuSarasas[i].code.charAt(0).toUpperCase() + vietoviuSarasas[i].code.slice(1);
+                                iki10++;
                             }
                         }
                     }
+                }
+
+                function lauktiTinkamosVietoves(){
+                    if(vietoviuSarasas.includes(paieskosZodis.value.toLowerCase())){
+                        let vietove = paieskosZodis.value.toLowerCase();
+                        return vietove;
+                    }
+                }
+                function salintiStulpelius() {
+                    for (let i = 0; i < 10; i++) {
+                        let paieskosPastraipa = document.getElementById('paieskosRezultatas' + i);
+                        paieskosPastraipa.innerHTML = "";
+                    }
+                }
             } else {
                 alert(vietovesUzklausa.statusText); //ismeta alerta
             }
         }
-    };
+    }
     vietovesUzklausa.open('GET','https://api.meteo.lt/v1/places'); //uzklausa
     //vietovesUzklausa.open('GET','https://api.meteo.lt/v1/places/Kaunas/forecasts/long-term'); //uzklausa
     //vietovesUzklausa.open('GET','https://api.sunrise-sunset.org/json?lat=36.7201600&lng=-4.4203400&date=2020-01-04')
@@ -42,7 +72,7 @@
                 let duomenys = JSON.parse(vietovesOruUzklausa.responseText);  // kintamasis = duomenys is failo/webo
                 let main = document.createElement('main');
                 body.appendChild(main);
-                let div = document.createElement('div');
+                let div = document.createElement('div',className = 'prognozeDienai');
                 div.style.display = 'flex';
                 div.style.flexWrap = 'wrap';
                 main.appendChild(div).className = 'prognozeDienai';
@@ -100,7 +130,7 @@
             }
         }
     };
-    vietovesOruUzklausa.open('GET','https://api.meteo.lt/v1/places/Kaunas/forecasts/long-term'); //uzklausa
+    vietovesOruUzklausa.open('GET','https://api.meteo.lt/v1/places/Vilnius/forecasts/long-term'); //uzklausa
     //vietovesOruUzklausa.open('GET','https://api.meteo.lt/v1/places/Kaunas/forecasts/long-term'); //uzklausa
     //vietovesOruUzklausa.open('GET','https://api.sunrise-sunset.org/json?lat=36.7201600&lng=-4.4203400&date=2020-01-04')
     vietovesOruUzklausa.send(); //uzklausos paleidimas
